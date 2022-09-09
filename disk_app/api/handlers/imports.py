@@ -64,11 +64,11 @@ class ImportsView(BaseView):
                 await self.validate_items(items)
 
                 items_rows = self.make_table_rows(items, date)
-                chunked_citizen_rows = chunk_list(items_rows,
+                chunked_rows = chunk_list(items_rows,
                                                 self.MAX_ITEMS_PER_INSERT)
 
 
-                for chunk in chunked_citizen_rows:
+                for chunk in chunked_rows:
                     query = items_table.insert().values(chunk)
                     await conn.execute(self.get_sql(query))
 
