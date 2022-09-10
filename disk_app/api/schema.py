@@ -14,6 +14,12 @@ class ItemImportSchema(Schema):
     size = Int(allow_none=True, validate=Range(min=0), strict=True, missing=None)
     type = Str(validate=OneOf([type.value for type in ItemType]), required=True)
 
+class ItemSchema(ItemImportSchema):
+    date = DateTime(required=True)
+    children = Nested(lambda: ItemSchema(), many=True, required=False)
+
+class UpdatesSchema(Schema):
+    items = Nested(ItemSchema, many=True, required=True)
 
 class ImportSchema(Schema):
     items = Nested(ItemImportSchema, many=True, required=True)
