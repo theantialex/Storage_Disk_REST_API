@@ -83,34 +83,34 @@ class ImportsView(BaseView):
     @classmethod
     def calculate_folder_sizes(self, items):
         for value in items.values():
-            if value['type'] == 'FILE':
-                # Adding file size to its current ancestors that are present in import
-                if value['parentId'] and value['parentId'] in items:
-                    parent_id = value['parentId']
-
-                    while parent_id != None and parent_id in items:
-                        if not items[parent_id]['size']:
-                            items[parent_id]['size'] = 0
-
-                        items[parent_id]['size'] += value['size']                    
-                        parent_id = items[parent_id]['parentId']
-
-                # Substracting file size from its previous ancestors that are present in import
-                if 'ex_parent_id' in value and value['ex_parent_id'] in items:
-                    parent_id = value['ex_parent_id']
-
-                    while parent_id != None and parent_id in items:
-                        if not items[parent_id]['size']:
-                            items[parent_id]['size'] = 0
-
-                        items[parent_id]['size'] -= value['ex_size']                   
-                        parent_id = items[parent_id]['parentId']
-
             # Adding previous folder size if already present in db
-            elif 'ex_parent_id' in value:
+            if value['type'] == 'FOLDER' and 'ex_parent_id' in value:
                 if not value['size']:
                     value['size'] = 0
                 value['size'] += value['ex_size']
+
+            # Adding size to its current ancestors that are present in import
+            if value['parentId'] and value['parentId'] in items:
+                parent_id = value['parentId']
+
+                while parent_id != None and parent_id in items:
+                    if not items[parent_id]['size']:
+                        items[parent_id]['size'] = 0
+
+                    items[parent_id]['size'] += value['size']                    
+                    parent_id = items[parent_id]['parentId']
+
+            # Substracting size from its previous ancestors that are present in import
+            if 'ex_parent_id' in value and value['ex_parent_id'] in items:
+                parent_id = value['ex_parent_id']
+
+                while parent_id != None and parent_id in items:
+                    if not items[parent_id]['size']:
+                        items[parent_id]['size'] = 0
+
+                    items[parent_id]['size'] -= value['ex_size']                   
+                    parent_id = items[parent_id]['parentId']
+
         return items
     
     async def get_ancestor_updates(self, items, date):
@@ -118,7 +118,8 @@ class ImportsView(BaseView):
         updates = {}
         for key, value in items.items():
             # Substracting item size from its previous parent
-            if 'ex_parent_id' in value and (not value['parentId'] or value['ex_parent_id'] != value['parentId']):
+            if 'ex_parent_id' in value and value['ex_parent_id'] not in items \
+            and (not value['parentId'] or value['ex_parent_id'] != value['parentId']):
                 if value['ex_parent_id'] not in updates:
                     updates[value['ex_parent_id']] = -value['ex_size']
                 else:
@@ -126,10 +127,12 @@ class ImportsView(BaseView):
 
             # Adding item size to new parent
             if value['parentId'] and value['parentId'] not in items:
+                if 'ex_size' not in value:
+                    value['ex_size'] = 0
                 if value['parentId'] not in updates:
-                    updates[value['parentId']] = value['size']
+                    updates[value['parentId']] = value['size'] - value['ex_size']
                 else:
-                    updates[value['parentId']] += value['size']
+                    updates[value['parentId']] += value['size'] - value['ex_size']
 
         for key, value in updates.items():
             parents = await self.get_ancestors(key)
@@ -138,16 +141,11 @@ class ImportsView(BaseView):
 
             for parent in parents:
                 parent = dict(parent)
-                # If ancestor already in import - update size
-                if parent['item_id'] in items:
-                    if not items[parent['item_id']]['size']:
-                        items[parent['item_id']]['size'] = 0
-                    items[parent['item_id']]['size'] += value
-                else: # If ancestor not in import add to ancestors
-                    if parent['item_id'] not in ancestors:
-                        parent['date'] = date
-                        ancestors[parent['item_id']] = parent
-                    ancestors[parent['item_id']]['size'] += value
+                # If ancestor not in import add to ancestors
+                if parent['item_id'] not in ancestors:
+                    parent['date'] = date
+                    ancestors[parent['item_id']] = parent
+                ancestors[parent['item_id']]['size'] += value
 
         return items, ancestors
 
