@@ -22,7 +22,7 @@ class NodesView(BaseView):
             'url': item['url'],
             'type': item['type'],
             'parentId': item['parent_id'],
-            'date': datetime.isoformat(item['date'], timespec='milliseconds') + 'Z',
+            'date': datetime.isoformat(item['date'], timespec='seconds') + 'Z',
             'size': item['size'],
             'children': children
         }

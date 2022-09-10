@@ -26,7 +26,7 @@ class HistoryView(BaseView):
                 {
                     'id': row['item_id'],
                     'url': row['url'],
-                    'date': datetime.isoformat(row['date'], timespec='milliseconds') + 'Z',
+                    'date': datetime.isoformat(row['date'], timespec='seconds') + 'Z',
                     'parentId': row['parent_id'],
                     'size': row['size'],
                     'type': row['type']
