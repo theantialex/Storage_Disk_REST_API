@@ -1,0 +1,14 @@
+[Unit]
+Description=Yandex Disk service with docker compose
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+WorkingDirectory=/YandexDisk_REST_API/
+ExecStart=docker-compose up -d --remove-orphans
+ExecStop=docker-compose down
+
+[Install]
+WantedBy=multi-user.target

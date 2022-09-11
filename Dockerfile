@@ -10,12 +10,9 @@ COPY disk_app/ /mnt/dist/disk_app
 COPY setup.py /mnt/dist/
 COPY README.md /mnt/dist/
 
-RUN cd /mnt/dist/ && ls -la
 RUN /usr/share/python3/app/bin/pip install /mnt/dist/ \
     && /usr/share/python3/app/bin/pip check
 
 RUN ln -snf /usr/share/python3/app/bin/disk_app-* /usr/local/bin/
 
 ENV PYTHONPATH /mnt/dist/
-
-CMD ["disk_app-api"]

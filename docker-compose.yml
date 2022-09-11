@@ -7,16 +7,29 @@ services:
       POSTGRES_DB: "disk"
       POSTGRES_USER: "db_user"
       POSTGRES_PASSWORD: "12345"
+    volumes:
+      - .:/var/lib/postgresql/data
 
-  disk_service:
+  migrations_service:
     depends_on:
       - postgres
+    build:
+      dockerfile: Dockerfile
+      context: .
+    environment:
+      - DISK_PG_URL=postgresql://db_user:12345@postgres:5432/disk
+    command: ["disk_app-db", "upgrade", "head"]
+
+  disk_service:
+    restart: always
+    depends_on:
+      - postgres
+      - migrations_service
     build:
       dockerfile: Dockerfile
       context: .
     ports:
       - "8080:8080"
     environment:
-      - DISK_PG_URL=postgres://db_user:12345@postgres:5432/disk
-    extra_hosts:
-      - "host.docker.internal:172.17.0.1"
+      - DISK_PG_URL=postgresql://db_user:12345@postgres:5432/disk
+    command: ["disk_app-api"]
