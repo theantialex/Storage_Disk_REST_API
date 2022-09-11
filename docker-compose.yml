@@ -1,0 +1,22 @@
+version: '3.7'
+services:
+  postgres:
+    restart: always
+    image: postgres:14
+    environment:
+      POSTGRES_DB: "disk"
+      POSTGRES_USER: "db_user"
+      POSTGRES_PASSWORD: "12345"
+
+  disk_service:
+    depends_on:
+      - postgres
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DISK_PG_URL=postgres://db_user:12345@postgres:5432/disk
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"

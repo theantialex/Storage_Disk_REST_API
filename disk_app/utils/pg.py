@@ -22,10 +22,10 @@ log = logging.getLogger(__name__)
 
 async def setup_pg(app: Application, args: Namespace) -> Pool:
     db_info = args.pg_url.with_password(CENSORED)
-    log.info('Connecting to database: %s', DEFAULT_PG_URL)
+    log.info('Connecting to database: %s', db_info)
 
     app['pg'] = await asyncpg.create_pool(
-        dsn=str(DEFAULT_PG_URL),
+        str(args.pg_url),
         min_size=args.pg_pool_min_size,
         max_size=args.pg_pool_max_size
     )
