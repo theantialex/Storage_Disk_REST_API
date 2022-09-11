@@ -29,7 +29,7 @@ services:
       dockerfile: Dockerfile
       context: .
     ports:
-      - "8080:8080"
+      - "80:8080"
     environment:
       - DISK_PG_URL=postgresql://db_user:12345@postgres:5432/disk
     command: ["disk_app-api"]
