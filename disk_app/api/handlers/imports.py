@@ -83,10 +83,10 @@ class ImportsView(BaseView):
     @classmethod
     def calculate_folder_sizes(self, items):
         for value in items.values():
+            if not value['size']:
+                value['size'] = 0
             # Adding previous folder size if already present in db
             if value['type'] == 'FOLDER' and 'ex_parent_id' in value:
-                if not value['size']:
-                    value['size'] = 0
                 value['size'] += value['ex_size']
 
             # Adding size to its current ancestors that are present in import
@@ -118,7 +118,7 @@ class ImportsView(BaseView):
         updates = {}
         for key, value in items.items():
             # Substracting item size from its previous parent
-            if 'ex_parent_id' in value and value['ex_parent_id'] not in items \
+            if 'ex_parent_id' in value and value['ex_parent_id'] and value['ex_parent_id'] not in items \
             and (not value['parentId'] or value['ex_parent_id'] != value['parentId']):
                 if value['ex_parent_id'] not in updates:
                     updates[value['ex_parent_id']] = -value['ex_size']

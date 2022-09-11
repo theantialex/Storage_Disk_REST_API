@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from sqlite3 import connect
 from aiohttp.web_response import Response
 from aiohttp_apispec import docs
 from .base import BaseView
@@ -8,7 +9,8 @@ from sqlalchemy import delete
 from dateutil import parser
 from marshmallow import ValidationError
 from datetime import datetime
-
+from sqlalchemy import and_
+from sqlalchemy.dialects import postgresql
 
 
 class DeleteView(BaseView):
@@ -18,17 +20,16 @@ class DeleteView(BaseView):
     def id(self):
         return str(self.request.match_info.get('id'))
 
-    async def delete_recursive(self, item):
-        print(item)
+    async def delete_recursive(self, conn, item, relevant_items):
         query = delete(items_table).where(items_table.c.item_id == item['item_id'])
-        await self.pg.execute(self.get_sql(query))
+        await conn.execute(self.get_sql(query))
 
         if item['type'] == 'FOLDER':
-            query = items_table.select().where(items_table.c.parent_id == item['item_id']).order_by(items_table.c.date.desc())
-            items = await self.pg.fetch(self.get_sql(query))
+            query = items_table.select().where(and_(items_table.c.parent_id == item['item_id'], items_table.c.id.in_(relevant_items)))
+            items = await conn.fetch(self.get_sql(query))
 
             for item in items:
-                await self.delete_recursive(item)
+                await self.delete_recursive(conn, item, relevant_items)
 
 
     docs(summary='Удалить папку или файл')
@@ -48,6 +49,8 @@ class DeleteView(BaseView):
                 if not item:
                     raise HTTPNotFound(text="Item not found")
                 
-                await self.delete_recursive(item)
+                relevant_items = await conn.fetch(self.get_sql(self.get_relevant_ids_query(), postgresql.dialect()))
+                relevant_ids = [r[0] for r in relevant_items]
+                await self.delete_recursive(conn, item, relevant_ids)
 
                 return Response(status=HTTPStatus.OK)
