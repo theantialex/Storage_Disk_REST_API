@@ -2,7 +2,7 @@ from http import HTTPStatus
 from webbrowser import get
 import pytest
 
-from disk_app.utils.testing import generate_import_item, import_data, get_item
+from disk_app.utils.testing import generate_import_item, import_data
 
 
 CASES = (
@@ -98,3 +98,12 @@ CASES = (
 async def test_import(api_client, items, expected_status):
     await import_data(api_client, items, expected_status)
 
+
+# Меняется тип item с файла на папку.
+# Обработчик не должен добавлять такие данные.
+async def test_import_type(api_client):
+    item = generate_import_item(item_id='file', type='FILE')
+    await import_data(api_client, [item], HTTPStatus.OK)
+
+    item['type'] = 'FOLDER'
+    await import_data(api_client, [item], HTTPStatus.BAD_REQUEST)

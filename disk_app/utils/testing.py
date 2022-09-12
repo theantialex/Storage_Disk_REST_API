@@ -60,9 +60,9 @@ async def import_data(
         client: TestClient,
         items: List[Mapping[str, Any]],
         expected_status: Union[int, EnumMeta] = HTTPStatus.OK,
+        updateDate: str = str(datetime.now()),
         **request_kwargs
 ) -> Optional[int]:
-    updateDate = str(datetime.now())
     response = await client.post(
         ImportsView.URL, json={'items': items, 'updateDate': updateDate}, **request_kwargs
     )
@@ -82,64 +82,4 @@ async def get_item(
 
     if response.status == HTTPStatus.OK:
         data = await response.json()
-        return data['data']
-
-"""
-async def patch_citizen(
-        client: TestClient,
-        import_id: int,
-        citizen_id: int,
-        data: Mapping[str, Any],
-        expected_status: Union[int, EnumMeta] = HTTPStatus.OK,
-        str_or_url: StrOrURL = CitizenView.URL_PATH,
-        **request_kwargs
-):
-    response = await client.patch(
-        url_for(str_or_url, import_id=import_id,
-                citizen_id=citizen_id),
-        json=data,
-        **request_kwargs
-    )
-    assert response.status == expected_status
-    if response.status == HTTPStatus.OK:
-        data = await response.json()
-        errors = PatchCitizenResponseSchema().validate(data)
-        assert errors == {}
-        return data['data']
-
-
-async def get_citizens_birthdays(
-        client: TestClient,
-        import_id: int,
-        expected_status: Union[int, EnumMeta] = HTTPStatus.OK,
-        **request_kwargs
-):
-    response = await client.get(
-        url_for(CitizenBirthdaysView.URL_PATH, import_id=import_id),
-        **request_kwargs
-    )
-    assert response.status == expected_status
-    if response.status == HTTPStatus.OK:
-        data = await response.json()
-        errors = CitizenPresentsResponseSchema().validate(data)
-        assert errors == {}
-        return data['data']
-
-
-async def get_citizens_ages(
-        client: TestClient,
-        import_id: int,
-        expected_status: Union[int, EnumMeta] = HTTPStatus.OK,
-        **request_kwargs
-):
-    response = await client.get(
-        url_for(TownAgeStatView.URL_PATH, import_id=import_id),
-        **request_kwargs
-    )
-    assert response.status == expected_status
-    if response.status == HTTPStatus.OK:
-        data = await response.json()
-        errors = TownAgeStatResponseSchema().validate(data)
-        assert errors == {}
-        return data['data']
-"""
+        return data

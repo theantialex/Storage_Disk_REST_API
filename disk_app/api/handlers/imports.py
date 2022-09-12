@@ -110,7 +110,6 @@ class ImportsView(BaseView):
 
                     items[parent_id]['size'] -= value['ex_size']                   
                     parent_id = items[parent_id]['parentId']
-
         return items
     
     async def get_ancestor_updates(self, items, date):
@@ -118,8 +117,7 @@ class ImportsView(BaseView):
         updates = {}
         for key, value in items.items():
             # Substracting item size from its previous parent
-            if 'ex_parent_id' in value and value['ex_parent_id'] and value['ex_parent_id'] not in items \
-            and (not value['parentId'] or value['ex_parent_id'] != value['parentId']):
+            if 'ex_parent_id' in value and value['ex_parent_id'] and value['ex_parent_id'] not in items:
                 if value['ex_parent_id'] not in updates:
                     updates[value['ex_parent_id']] = -value['ex_size']
                 else:
@@ -130,15 +128,15 @@ class ImportsView(BaseView):
                 if 'ex_size' not in value:
                     value['ex_size'] = 0
                 if value['parentId'] not in updates:
-                    updates[value['parentId']] = value['size'] - value['ex_size']
+                    updates[value['parentId']] = value['size']
                 else:
-                    updates[value['parentId']] += value['size'] - value['ex_size']
+                    updates[value['parentId']] += value['size']
 
         for key, value in updates.items():
             parents = await self.get_ancestors(key)
             if not parents:
                 raise ValidationError('Validation Failed')
-
+            
             for parent in parents:
                 parent = dict(parent)
                 # If ancestor not in import add to ancestors
@@ -146,7 +144,7 @@ class ImportsView(BaseView):
                     parent['date'] = date
                     ancestors[parent['item_id']] = parent
                 ancestors[parent['item_id']]['size'] += value
-
+            
         return items, ancestors
 
 
