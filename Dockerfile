@@ -4,6 +4,7 @@ RUN python3.8 -m venv /usr/share/python3/app
 RUN /usr/share/python3/app/bin/pip install -U pip
 
 COPY requirements.txt /mnt/dist/
+COPY requirements.dev.txt /mnt/dist/
 RUN /usr/share/python3/app/bin/pip install -Ur /mnt/dist/requirements.txt
 
 COPY disk_app/ /mnt/dist/disk_app

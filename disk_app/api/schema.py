@@ -1,17 +1,16 @@
 from datetime import datetime
-from email.policy import default
 
 from marshmallow import Schema, ValidationError, validates, validates_schema
-from marshmallow.fields import DateTime, Int, Nested, Str
+from marshmallow.fields import DateTime, Int, Nested, Str, Dict
 from marshmallow.validate import Length, OneOf, Range
 
 from disk_app.db.schema import ItemType
 
 class ItemImportSchema(Schema):
     id = Str(validate=Length(min=1, max=256), required=True)
-    url = Str(allow_none=True, validate=Length(min=1, max=255), missing=None)
-    parentId = Str(allow_none=True, validate=Length(min=1, max=256), missing=None)
-    size = Int(allow_none=True, validate=Range(min=0), strict=True, missing=None)
+    url = Str(allow_none=True, validate=Length(min=1, max=255), load_default=None)
+    parentId = Str(allow_none=True, validate=Length(min=1, max=256), load_default=None)
+    size = Int(allow_none=True, validate=Range(min=0), strict=True, load_default=None)
     type = Str(validate=OneOf([type.value for type in ItemType]), required=True)
 
 class ItemSchema(ItemImportSchema):
@@ -51,3 +50,12 @@ class ImportSchema(Schema):
                     'folder size and url must be null'
                 )
             item_ids.add(item['id'])
+
+class ErrorSchema(Schema):
+    code = Int(required=True)
+    message = Str(required=True)
+    fields = Dict()
+
+
+class ErrorResponseSchema(Schema):
+    error = Nested(ErrorSchema(), required=True)
