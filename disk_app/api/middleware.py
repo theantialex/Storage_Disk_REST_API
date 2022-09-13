@@ -25,7 +25,7 @@ def format_http_error(http_error_cls, message: Optional[str] = None) -> HTTPExce
         'message': message or status.description
     }
 
-    return http_error_cls(body={error})
+    return http_error_cls(body=error)
 
 
 def handle_validation_error(error: ValidationError, *_):
