@@ -8,7 +8,7 @@ from aiohttp.test_utils import TestClient
 from aiohttp.web_urldispatcher import DynamicResource
 from datetime import datetime
 from disk_app.api.handlers import (
-    ImportsView, NodesView
+    ImportsView, NodesView, DeleteView, UpdatesView, HistoryView
 )
 
 from disk_app.utils.pg import MAX_INTEGER
@@ -56,6 +56,7 @@ def generate_import_item(
         'size': size,
     }
 
+
 async def import_data(
         client: TestClient,
         items: List[Mapping[str, Any]],
@@ -68,6 +69,7 @@ async def import_data(
     )
     assert response.status == expected_status
 
+
 async def get_item(
         client: TestClient,
         item_id: str,
@@ -77,6 +79,52 @@ async def get_item(
     response = await client.get(
         url_for(NodesView.URL, id=item_id),
         **request_kwargs
+    )
+    assert response.status == expected_status
+
+    if response.status == HTTPStatus.OK:
+        data = await response.json()
+        return data
+
+
+async def delete_item(
+        client: TestClient,
+        item_id: str,
+        date: str = str(datetime.now()),
+        expected_status: Union[int, EnumMeta] = HTTPStatus.OK,
+        **request_kwargs
+) -> List[dict]:
+    response = await client.delete(
+        url_for(DeleteView.URL, id=item_id), params={'date': date}, **request_kwargs
+    )
+    assert response.status == expected_status
+
+
+async def get_updates(
+        client: TestClient,
+        date: str = str(datetime.now()),
+        expected_status: Union[int, EnumMeta] = HTTPStatus.OK,
+        **request_kwargs
+) -> List[dict]:
+    response = await client.get(
+        url_for(UpdatesView.URL), params={'date': date}, **request_kwargs
+    )
+    assert response.status == expected_status
+
+    if response.status == HTTPStatus.OK:
+        data = await response.json()
+        return data
+
+async def get_history(
+        client: TestClient,
+        item_id: str,
+        startDate: str,
+        endDate: str,
+        expected_status: Union[int, EnumMeta] = HTTPStatus.OK,
+        **request_kwargs
+) -> List[dict]:
+    response = await client.get(
+        url_for(HistoryView.URL, id=item_id), params={'dateStart': startDate, 'dateEnd': endDate}, **request_kwargs
     )
     assert response.status == expected_status
 

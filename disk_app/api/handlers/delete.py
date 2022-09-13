@@ -20,6 +20,22 @@ class DeleteView(BaseView):
     def id(self):
         return str(self.request.match_info.get('id'))
 
+    async def update_ancestors(self, conn, item, relevant_items, date):
+        parent_id = item['parent_id']
+        while parent_id != None:
+            query = items_table.select().where(and_(items_table.c.item_id == parent_id, items_table.c.id.in_(relevant_items)))
+            parent = await conn.fetchrow(self.get_sql(query))
+    
+            parent = dict(parent)
+            parent['size'] -= item['size']
+            parent['date'] = date
+            del parent['id']
+
+            query = items_table.insert().values(parent)
+            await conn.execute(self.get_sql(query))
+            parent_id = parent['parent_id']
+
+
     async def delete_recursive(self, conn, item, relevant_items):
         query = delete(items_table).where(items_table.c.item_id == item['item_id'])
         await conn.execute(self.get_sql(query))
@@ -51,6 +67,8 @@ class DeleteView(BaseView):
                 
                 relevant_items = await conn.fetch(self.get_sql(self.get_relevant_ids_query(), postgresql.dialect()))
                 relevant_ids = [r[0] for r in relevant_items]
+
+                await self.update_ancestors(conn, item, relevant_ids, date)
                 await self.delete_recursive(conn, item, relevant_ids)
 
                 return Response(status=HTTPStatus.OK)

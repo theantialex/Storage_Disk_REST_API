@@ -79,3 +79,8 @@ async def test_get_items(api_client):
 
     data = await get_item(api_client, main_folder['id'], HTTPStatus.OK)
     assert data == main_folder
+
+
+async def test_get_items_errors(api_client):
+    # Получение несуществующей item
+    await get_item(api_client, 'id', HTTPStatus.NOT_FOUND)
