@@ -37,17 +37,18 @@ class HistoryView(BaseView):
     @docs(summary='Получить историю в периоде по файлу/папке')
     @response_schema(UpdatesSchema())
     async def get(self):
-        try:
-            date_start = self.request.rel_url.query.get('dateStart', '')
-            date_end = self.request.rel_url.query.get('dateEnd', '')
+        date_start = self.request.rel_url.query.get('dateStart', '')
+        date_end = self.request.rel_url.query.get('dateEnd', '')
 
+        if not date_end:
+            date_end = str(datetime.now())
+        
+        if date_start:
             date_start = parser.isoparse(date_start)
             date_end = parser.isoparse(date_end)
             if date_start.timestamp() > datetime.now().timestamp() or date_end.timestamp() > datetime.now().timestamp() \
-                 or date_start.timestamp() > date_end.timestamp():
-                raise ValidationError
-        except:
-            raise ValidationError('Validation Failed')
+                    or date_start.timestamp() > date_end.timestamp():
+                raise ValidationError('Validation Failed')
         
         exists_query = select([
             exists().where(items_table.c.item_id == self.id)
@@ -57,8 +58,12 @@ class HistoryView(BaseView):
         if not item:
             raise HTTPNotFound(text="Item not found")
 
-        query = items_table.select().where(and_(items_table.c.item_id == self.id, 
-            str(date_start) <= items_table.c.date, items_table.c.date < str(date_end))).order_by(items_table.c.date)     
+        if not date_start:
+            query = items_table.select().where(and_(items_table.c.item_id == self.id, items_table.c.date < str(date_end))).order_by(items_table.c.date)  
+        else:
+            query = items_table.select().where(and_(items_table.c.item_id == self.id, 
+                str(date_start) <= items_table.c.date, items_table.c.date < str(date_end))).order_by(items_table.c.date) 
+    
         rows = await self.pg.fetch(self.get_sql(query))
 
         items_list = self.make_items_list(rows)
