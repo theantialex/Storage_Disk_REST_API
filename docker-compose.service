@@ -6,9 +6,8 @@ After=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=true
-WorkingDirectory=/YandexDisk_REST_API/
-ExecStart=docker-compose up -d --remove-orphans
-ExecStop=docker-compose down
+ExecStart=docker-compose up -f /home/ubuntu/YandexDisk_REST_API/docker-compose.yml -d --remove-orphans
+ExecStop=docker-compose down -f /home/ubuntu/YandexDisk_REST_API/docker-compose.yml
 
 [Install]
 WantedBy=multi-user.target
