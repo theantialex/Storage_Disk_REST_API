@@ -49,6 +49,10 @@ class ImportSchema(Schema):
                 raise ValidationError(
                     'folder size and url must be null'
                 )
+            if item['type'] == 'FILE' and (not item['size'] or not item['url']):
+                raise ValidationError(
+                    'file size and url must not be null'
+                )
             item_ids.add(item['id'])
 
 class ErrorSchema(Schema):
