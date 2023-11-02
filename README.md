@@ -1,27 +1,22 @@
 # YandexDisk_REST_API
 
-Бэкенд для веб-сервиса хранения файлов, аналогичный сервису [Яндекс Диск](https://yandex.ru/disk), который позволяет пользователям загружать и обновлять информацию о файлах и папках. Является REST API сервисом со спецификацией, соответсвующей файлу <code>openapi.yaml</code>
+Backend for a file storage web service, similar to the [Yandex Disk](https://yandex.ru/disk) service, which allows users to upload and update information about files and folders. REST API service with a specification corresponding to the file <code>openapi.yaml</code>
 
-Приложение и база данных упакованы в Docker контейнеры.
-Внутри Docker-контейнера с приложением доступны две команды: 
- *   disk_app-db — утилита для управления состоянием базы данных
- *   disk_app-api — утилита для запуска REST API сервиса
+The application and database are inside Docker containers.
+There are two commands available inside the Docker container with the application:
+ *   disk_app-db — utility for managing database state
+ *   disk_app-api — utility for launching REST API service
 
-## Ссылка на сервис ##
-<link>
-https://bras-1969.usr.yandex-academy.ru
-</link>
-
-Разработка
+Development
 ==========
-Быстрые команды
+Quick commands
 ---------------
-* `make` Отобразить список доступных команд
-* `make devenv` Создать и настроить виртуальное окружение для разработки
-* `make postgres` Поднять Docker-контейнер с PostgreSQL
-* `make clean` Удалить файлы, созданные модулем `distutils`_
+* `make` Display a list of available commands
+* `make devenv` Create and configure a virtual development environment
+* `make postgres` Start Docker container with PostgreSQL
+* `make clean` Delete files created by the module `distutils`_
 
-Подготовка окружения для разработки
+Preparing the environment for development
 ---------------
 ```
     make devenv
@@ -30,31 +25,31 @@ https://bras-1969.usr.yandex-academy.ru
     disk_app-db upgrade head
     disk_app-api
 ```
-После запуска команд приложение начнет слушать запросы на 0.0.0.0:8080.
+After running the commands, the application will start listening for requests on 0.0.0.0:8080.
 
-Тестирование
+Testing
 ---------------
-Реализовано покрытие тестами на 94%.
+Test coverage achieved 94%.
 
-Для запуска локального тестирования необходимо выполнить следующие команды:
+To run local testing, you must run the following commands:
 ```
     make devenv
     make postgres
     source env/bin/activate
     pytest
 ```
-Развертывание на сервере
+Server deployment
 ==========
 ```
   git clone https://github.com/theantialex/YandexDisk_REST_API.git
   cd YandexDisk_REST_API && docker-compose up -d
 ```
-После запуска приложение начнет слушать запросы на 0.0.0.0:80.
+Once launched, the application will start listening for requests at 0.0.0.0:80.
 
-## Настройка автозапуска на сервере ##
+## Setting up autorun on the server ##
 
-После разрвертывания на сервере можно настроить автозапуск приложения при его рестарте. Для этого необходимо поместить файл docker-compose.service в директорию /etc/systemd/system и
-выполнить следующие команды:
+After deployment on the server, you can configure the application to autostart when it is restarted. To do this, you need to place the docker-compose.service file in the /etc/systemd/system directory and
+run the following commands:
 
 ```
   systemctl enable docker-compose
